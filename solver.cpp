@@ -5,19 +5,11 @@
 // ─── Core recursive search ────────────────────────────────────────────────────
 // Returns true if the side to move in `board` is in checkmate after exactly
 // `depth` more half-moves, with optimal play from both sides.
-//
-// solvingTurn = true  → it is the ATTACKER's turn (tries to deliver mate)
-// solvingTurn = false → it is the DEFENDER's turn (tries to escape)
-//
-// The fix vs. the old version: depth counting is now purely ply-based and the
-// base case is checked BEFORE consuming a ply, not after. This prevents the
-// off-by-one that allowed non-existent "mates" to be reported.
+
+
 bool Solver::searchMate(const Board& board, int depth, bool solvingTurn,
                          Color sideToSolve, SolveLine& line) const
 {
-    // ── Base case: no plies left ──────────────────────────────────────────────
-    // We only declare success if the DEFENDER (the non-solving side) is
-    // in checkmate right now.
     if (depth == 0) {
         Color defender = opposite(sideToSolve);
         return board.isCheckmate(defender);
@@ -29,14 +21,12 @@ bool Solver::searchMate(const Board& board, int depth, bool solvingTurn,
     // No legal moves: checkmate or stalemate
     if (moves.empty()) {
         if (board.isCheckmate(current)) {
-            // current player is mated — good only if current is the defender
             return current == opposite(sideToSolve);
         }
         return false; // stalemate = not a win
     }
 
     if (solvingTurn) {
-        // Attacker's turn: need at least ONE move that forces mate
         for (const auto& mv : moves) {
             Board next(board);
             next.applyMove(mv);
@@ -51,7 +41,6 @@ bool Solver::searchMate(const Board& board, int depth, bool solvingTurn,
         }
         return false;
     } else {
-        // Defender's turn: ALL moves must lead to forced mate
         SolveLine combinedLine;
         for (const auto& mv : moves) {
             Board next(board);
@@ -61,7 +50,6 @@ bool Solver::searchMate(const Board& board, int depth, bool solvingTurn,
             if (!searchMate(next, depth - 1, true, sideToSolve, subLine)) {
                 return false; // defender found an escape
             }
-            // Keep the last variation for display purposes
             combinedLine.moves.clear();
             combinedLine.moves.push_back(mv);
             combinedLine.moves.insert(combinedLine.moves.end(), subLine.moves.begin(), subLine.moves.end());
@@ -71,7 +59,6 @@ bool Solver::searchMate(const Board& board, int depth, bool solvingTurn,
     }
 }
 
-// ─── Public API ───────────────────────────────────────────────────────────────
 std::vector<SolveLine> Solver::findMateInN(const Board& board, int depth) const {
     std::vector<SolveLine> results;
     Color sideToSolve = board.turn_;
@@ -82,7 +69,6 @@ std::vector<SolveLine> Solver::findMateInN(const Board& board, int depth) const 
         next.applyMove(mv);
 
         SolveLine subLine;
-        // After attacker's first move, depth-1 plies remain, defender moves next
         if (searchMate(next, depth - 1, false, sideToSolve, subLine)) {
             SolveLine full;
             full.moves.push_back(mv);
@@ -93,7 +79,6 @@ std::vector<SolveLine> Solver::findMateInN(const Board& board, int depth) const 
     return results;
 }
 
-// ─── Algebraic notation helper ───────────────────────────────────────────────
 std::string Solver::moveToAlgebraic(const Board& board, const Move& m) {
     const auto& piece = board.cell(m.from);
     if (!piece) return "??";
@@ -129,7 +114,6 @@ std::string Solver::moveToAlgebraic(const Board& board, const Move& m) {
     return oss.str();
 }
 
-// ─── Print a full line ────────────────────────────────────────────────────────
 void Solver::printSolveLine(const Board& boardIn, const SolveLine& line, Color attackerColor) {
     Board b(boardIn);
     int moveNum = 1;
