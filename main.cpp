@@ -27,6 +27,7 @@ static bool parsePiece(const std::string& token, Color& color, PieceType& type, 
     return true;
 }
 
+
 static void printHelp() {
     std::cout << "\n"
 "|==========================================================|\n"
@@ -59,7 +60,7 @@ static void solvePosition(const Board& board) {
             return;
         }
         if (board.isStalemate(side)) {
-            std::cout << ">>> This position is already stalemate - it is a draw.\n\n";
+            std::cout << ">>> This position is already stalemate — it is a draw.\n\n";
             return;
         }
     }
@@ -143,13 +144,13 @@ int main() {
             // Two pieces on the same square
             if (!board.isEmpty(pos)) {
                 std::cout << "  Error: square " << (char)('a' + pos.col) << (8 - pos.row)
-                          << " is already occupied - two pieces cannot share a square.\n\n";
+                          << " is already occupied — two pieces cannot share a square.\n\n";
                 parseOk = false; break;
             }
 
             // Pawn on 1st or 8th rank
             if (t == PieceType::Pawn && (pos.row == 0 || pos.row == 7)) {
-                std::cout << "  Error: '" << token << "' - pawns cannot stand on the 1st or 8th rank.\n\n";
+                std::cout << "  Error: '" << token << "' — pawns cannot stand on the 1st or 8th rank.\n\n";
                 parseOk = false; break;
             }
 
@@ -183,7 +184,7 @@ int main() {
             Position wk = board.findKing(Color::White);
             Position bk = board.findKing(Color::Black);
             if (std::abs(wk.row - bk.row) <= 1 && std::abs(wk.col - bk.col) <= 1) {
-                std::cout << "  Error: the two kings cannot be adjacent - illegal position.\n\n";
+                std::cout << "  Error: the two kings cannot be adjacent — illegal position.\n\n";
                 continue;
             }
         }
@@ -191,9 +192,9 @@ int main() {
         // The side that just moved cannot be in check
         {
             Color justMoved = opposite(board.turn_);
-            if (board.isInCheck(justMoved)) {
+            if (board.isInCheck(justMoved) && !board.isCheckmate(justMoved)) {
                 std::cout << "  Error: " << colorToStr(justMoved)
-                          << " (the side that just moved) cannot be left in check - illegal position.\n\n";
+                          << " (the side that just moved) cannot be left in check — illegal position.\n\n";
                 continue;
             }
         }
